@@ -1,5 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
+import { API_URL } from "@/config/apiConfig";
+
 
 /* ================= FETCH ALL ANNOUNCEMENTS (ADMIN - OLD) ================= */
 
@@ -7,7 +9,7 @@ export const fetchAnnouncements = createAsyncThunk(
   "announcement/fetchAll",
   async () => {
     const res = await axios.get(
-      `${import.meta.env.VITE_API_URL}/api/admin/announcement`,
+      `${API_URL}/api/admin/announcement`,
       { withCredentials: true }
     );
     return res.data.data;
@@ -20,7 +22,7 @@ export const fetchAnnouncementsFixed = createAsyncThunk(
   "announcement/fetchAllFixed",
   async () => {
     const res = await axios.get(
-      `${import.meta.env.VITE_API_URL}/api/admin/announcement/all`,
+      `${API_URL}/api/admin/announcement/all`,
       { withCredentials: true }
     );
     return res.data.data;
@@ -33,7 +35,7 @@ export const fetchActiveAnnouncement = createAsyncThunk(
   "announcement/fetchActive",
   async () => {
     const res = await axios.get(
-      `${import.meta.env.VITE_API_URL}/api/admin/announcement/active`,
+      `${API_URL}/api/admin/announcement/active`,
       { withCredentials: true }
     );
     return res.data.data;
@@ -46,7 +48,7 @@ export const createAnnouncement = createAsyncThunk(
   "announcement/create",
   async ({ title, image }) => {
     const res = await axios.post(
-      `${import.meta.env.VITE_API_URL}/api/admin/announcement/add`,
+      `${API_URL}/api/admin/announcement/add`,
       { title, image },
       { withCredentials: true }
     );
@@ -60,7 +62,7 @@ export const deleteAnnouncement = createAsyncThunk(
   "announcement/delete",
   async (id) => {
     await axios.delete(
-      `${import.meta.env.VITE_API_URL}/api/admin/announcement/${id}`,
+      `${API_URL}/api/admin/announcement/${id}`,
       { withCredentials: true }
     );
     return id;

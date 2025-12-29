@@ -1,5 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
+import { API_URL } from "@/config/apiConfig";
+
 
 /* ================= ADD SUBSCRIBER ================= */
 
@@ -7,7 +9,7 @@ export const addSubscriber = createAsyncThunk(
   "subscriber/add",
   async (email) => {
     const res = await axios.post(
-      `${import.meta.env.VITE_API_URL}/api/admin/subscribers/add`,
+      `${API_URL}/api/admin/subscribers/add`,
       { email }
     );
     return res.data.data; // return saved subscriber
@@ -20,7 +22,7 @@ export const fetchSubscribers = createAsyncThunk(
   "subscriber/fetchAll",
   async () => {
     const res = await axios.get(
-      `${import.meta.env.VITE_API_URL}/api/admin/subscribers/list`
+      `${API_URL}/api/admin/subscribers/list`
     );
     return res.data.data;
   }

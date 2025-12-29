@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import { Skeleton } from "@/components/ui/skeleton";
+import { API_URL } from "@/config/apiConfig";
+
 
 function AdminUserOrders() {
   const { userId } = useParams();
@@ -12,7 +14,7 @@ function AdminUserOrders() {
     async function fetchOrders() {
       try {
         const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/admin/users/${userId}/orders`,
+          `${API_URL}/api/admin/users/${userId}/orders`,
           { withCredentials: true }
         );
         setOrders(res.data.data || []);

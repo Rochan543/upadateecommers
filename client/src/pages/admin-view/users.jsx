@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { Skeleton } from "@/components/ui/skeleton";
 import axios from "axios";
+import { API_URL } from "@/config/apiConfig";
+
 
 function AdminUsers() {
   const navigate = useNavigate();
@@ -15,7 +17,7 @@ function AdminUsers() {
     async function fetchUsers() {
       try {
         const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/admin/users/get`,
+          `${API_URL}/api/admin/users/get`,
           { withCredentials: true }
         );
         setUsers(res.data.data || []);

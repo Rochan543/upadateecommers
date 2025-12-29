@@ -1,11 +1,13 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
+import { API_URL } from "@/config/apiConfig";
+
 
 export const toggleFavorite = createAsyncThunk(
   "favorites/toggle",
   async ({ userId, productId }) => {
     const res = await axios.post(
-      `${import.meta.env.VITE_API_URL}/api/shop/favorites/toggle`,
+      `${API_URL}/api/shop/favorites/toggle`,
       { userId, productId },
       { withCredentials: true }
     );
@@ -17,7 +19,7 @@ export const fetchFavorites = createAsyncThunk(
   "favorites/fetch",
   async (userId) => {
     const res = await axios.get(
-      `${import.meta.env.VITE_API_URL}/api/shop/favorites/${userId}`,
+      `${API_URL}/api/shop/favorites/${userId}`,
       { withCredentials: true }
     );
     return res.data.data;
