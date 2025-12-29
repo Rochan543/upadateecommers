@@ -9,6 +9,7 @@ const registerUser = async (req, res) => {
   try {
     const { userName, email, password } = req.body;
 
+    // 1. Validate input
     if (!userName || !email || !password) {
       return res.status(400).json({
         success: false,
@@ -16,28 +17,50 @@ const registerUser = async (req, res) => {
       });
     }
 
-    const checkUser = await User.findOne({ email });
-    if (checkUser) {
+    // 2. Check email uniqueness
+    const existingEmail = await User.findOne({ email });
+    if (existingEmail) {
       return res.status(409).json({
         success: false,
-        message: "User already exists with this email",
+        message: "Email already registered",
       });
     }
 
-    const hashPassword = await bcrypt.hash(password, 12);
+    // 3. Check username uniqueness
+    const existingUserName = await User.findOne({ userName });
+    if (existingUserName) {
+      return res.status(409).json({
+        success: false,
+        message: "Username already taken",
+      });
+    }
 
+    // 4. Hash password
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    // 5. Create user
     await User.create({
       userName,
       email,
-      password: hashPassword,
+      password: hashedPassword,
     });
 
+    // 6. Success response
     res.status(201).json({
       success: true,
       message: "Registration successful",
     });
   } catch (error) {
     console.error("REGISTER ERROR:", error);
+
+    // 7. Handle MongoDB duplicate key safety net
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "Username or email already exists",
+      });
+    }
+
     res.status(500).json({
       success: false,
       message: "Server error",
@@ -52,6 +75,7 @@ const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    // 1. Validate input
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -59,42 +83,42 @@ const loginUser = async (req, res) => {
       });
     }
 
-    const checkUser = await User.findOne({ email });
-    if (!checkUser) {
+    // 2. Find user
+    const user = await User.findOne({ email });
+    if (!user) {
       return res.status(404).json({
         success: false,
         message: "User not found",
       });
     }
 
-    const isPasswordMatch = await bcrypt.compare(
-      password,
-      checkUser.password
-    );
-
-    if (!isPasswordMatch) {
+    // 3. Compare password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
       return res.status(401).json({
         success: false,
         message: "Invalid credentials",
       });
     }
 
+    // 4. Create JWT
     const token = jwt.sign(
       {
-        id: checkUser._id,
-        role: checkUser.role,
-        email: checkUser.email,
-        userName: checkUser.userName,
+        id: user._id,
+        role: user.role,
+        email: user.email,
+        userName: user.userName,
       },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
+    // 5. Set cookie (HTTPS + cross-domain safe)
     res
       .cookie("token", token, {
         httpOnly: true,
-        secure: true,        // ✅ REQUIRED (HTTPS)
-        sameSite: "none",    // ✅ REQUIRED (cross-domain)
+        secure: true,      // REQUIRED (HTTPS)
+        sameSite: "none",  // REQUIRED (Netlify ↔ Render)
         maxAge: 60 * 60 * 1000,
       })
       .status(200)
@@ -102,10 +126,10 @@ const loginUser = async (req, res) => {
         success: true,
         message: "Login successful",
         user: {
-          id: checkUser._id,
-          email: checkUser.email,
-          role: checkUser.role,
-          userName: checkUser.userName,
+          id: user._id,
+          email: user.email,
+          role: user.role,
+          userName: user.userName,
         },
       });
   } catch (error) {
@@ -158,6 +182,9 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
+// =====================
+// EXPORTS
+// =====================
 module.exports = {
   registerUser,
   loginUser,
