@@ -4,15 +4,16 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
+
+// ROUTES
 const authRouter = require("./routes/auth/auth-routes");
 const adminProductsRouter = require("./routes/admin/products-routes");
 const adminOrderRouter = require("./routes/admin/order-routes");
-const adminUserRouter = require("./routes/admin/user-routes"); // ✅ NEW
+const adminUserRouter = require("./routes/admin/user-routes");
 const adminAnnouncementRouter = require("./routes/admin/announcement-routes");
 const adminSubscriberRouter = require("./routes/admin/subscriber-routes");
+
 const shopFavoritesRouter = require("./routes/shop/favorites-routes");
-
-
 const shopProductsRouter = require("./routes/shop/products-routes");
 const shopCartRouter = require("./routes/shop/cart-routes");
 const shopAddressRouter = require("./routes/shop/address-routes");
@@ -22,24 +23,39 @@ const shopReviewRouter = require("./routes/shop/review-routes");
 
 const commonFeatureRouter = require("./routes/common/feature-routes");
 
-//create a database connection -> u can also
-//create a separate file for this and then import/use that file here
-
+// --------------------
+// DATABASE CONNECTION
+// --------------------
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB connected"))
-  .catch((error) => console.log(error));
+  .catch((error) => console.log("MongoDB error:", error));
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// --------------------
+// ✅ CORS CONFIG (FIXED)
+// --------------------
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://mrprefectwebsitevzm.netlify.app",
+];
+
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",          // ✅ local development
-      process.env.FRONTEND_URL,         // ✅ Netlify / domain
-    ],
-    methods: ["GET", "POST", "DELETE", "PUT"],
+    origin: function (origin, callback) {
+      // allow requests with no origin (Postman, curl, server-side)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      } else {
+        return callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: [
       "Content-Type",
       "Authorization",
@@ -47,29 +63,42 @@ app.use(
       "Expires",
       "Pragma",
     ],
-    credentials: true,
   })
 );
 
+// ✅ REQUIRED for preflight requests
+app.options("*", cors());
+
+// --------------------
+// MIDDLEWARES
+// --------------------
 app.use(cookieParser());
 app.use(express.json());
+
+// --------------------
+// ROUTES
+// --------------------
 app.use("/api/auth", authRouter);
+
 app.use("/api/admin/products", adminProductsRouter);
 app.use("/api/admin/orders", adminOrderRouter);
-app.use("/api/admin/users", adminUserRouter); // ✅ REGISTERED HERE
+app.use("/api/admin/users", adminUserRouter);
+app.use("/api/admin/announcement", adminAnnouncementRouter);
+app.use("/api/admin/subscribers", adminSubscriberRouter);
+
 app.use("/api/shop/favorites", shopFavoritesRouter);
-
-
 app.use("/api/shop/products", shopProductsRouter);
 app.use("/api/shop/cart", shopCartRouter);
 app.use("/api/shop/address", shopAddressRouter);
 app.use("/api/shop/order", shopOrderRouter);
 app.use("/api/shop/search", shopSearchRouter);
 app.use("/api/shop/review", shopReviewRouter);
-app.use("/api/admin/announcement", adminAnnouncementRouter);
-app.use("/api/admin/subscribers", adminSubscriberRouter);
 
 app.use("/api/common/feature", commonFeatureRouter);
 
-app.listen(PORT, () => console.log(`Server is now running on port ${PORT}`));
-
+// --------------------
+// SERVER START
+// --------------------
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
